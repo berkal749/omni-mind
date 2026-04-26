@@ -12,9 +12,11 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async createUser(user: CreateUserDto) {
-    const userCheck = await this.prisma.user.findUnique({ where: { ...user } });
+    const userCheck = await this.prisma.user.findUnique({
+      where: { email: user.email },
+    });
 
-    if (!user) {
+    if (!userCheck) {
       throw new ConflictException(`User with  ${user} laredy exsist`);
     }
     return this.prisma.user.create({
