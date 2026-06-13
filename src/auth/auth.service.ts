@@ -65,7 +65,19 @@ export class AuthService {
     return this.signToken(validate.id, validate.email);
   }
 
-  private signToken(userId: string, email: string) {
-    return this.jwt.signAsync({ sub: userId, email });
+  private async signToken(userId: string, email: string) {
+    const [access_token, refresh_token] = await Promise.all([
+      this.jwt.signAsync({ sub: userId, email }, { expiresIn: '15m' }),
+      this.jwt.signAsync(
+        { sub: userId, email },
+        { expiresIn: '30d', secret: process.env.JWT_REFRESH_SECRET },
+      ),
+    ]);
+
+    return { access_token, refresh_token };
+  }
+
+  async refreshToken(userId: string, email: string) {
+    return this.signToken(userId, email);
   }
 }

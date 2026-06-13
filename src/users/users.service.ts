@@ -27,7 +27,7 @@ export class UserService {
   }
 
   async getAllUsers() {
-    const user =  await this.prisma.user.findMany();
+    const user = await this.prisma.user.findMany();
 
     if (!user) {
       throw new NotFoundException(`nothing`);
@@ -49,7 +49,7 @@ export class UserService {
   }
 
   async updateUser(user: UpdateUserDto) {
-    const userCheck =  await this.prisma.user.findFirst({
+    const userCheck = await this.prisma.user.findFirst({
       where: {
         email: user.email,
         name: user.name,
@@ -70,7 +70,7 @@ export class UserService {
   }
 
   async deleteUser(user: UpdateUserDto) {
-    const userCheck =  await this.prisma.user.findFirst({
+    const userCheck = await this.prisma.user.findFirst({
       where: {
         email: user.email,
         name: user.name,
