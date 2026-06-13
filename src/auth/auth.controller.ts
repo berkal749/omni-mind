@@ -1,5 +1,6 @@
-import { Body, Controller, Post } from '@nestjs/common'
-import { AuthService } from './auth.service.js'
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { AuthService } from './auth.service.js';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -7,11 +8,11 @@ export class AuthController {
 
   @Post('register')
   register(@Body() body: { email: string; name: string; password: string }) {
-    return this.auth.register(body.email, body.name, body.password)
+    return this.auth.register(body.email, body.name, body.password);
   }
-
+  @UseGuards(AuthGuard('local'))
   @Post('login')
   login(@Body() body: { email: string; password: string }) {
-    return this.auth.login(body.email, body.password)
+    return this.auth.login(body.email, body.password);
   }
 }
