@@ -17,7 +17,7 @@ export class UserService {
     });
 
     if (!userCheck) {
-      throw new ConflictException(`User with  ${user} laredy exsist`);
+      throw new ConflictException(`User with  laredy exsist`);
     }
     return this.prisma.user.create({
       data: {

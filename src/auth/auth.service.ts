@@ -27,7 +27,7 @@ export class AuthService {
       data: { email, name, password: hashed },
     });
 
-    return this.signToken(user2.id, user2.email);
+    return this.signToken(user2.id, user2.email, user2.role);
   }
 
   async bruhlogin(email: string, name: string, password: string) {
@@ -44,7 +44,7 @@ export class AuthService {
       data: { email, name, password: hashed },
     });
 
-    return this.signToken(user.id, user.email);
+    return this.signToken(user.id, user.email, user.role);
   }
 
   async validate(email: string, password: string) {
@@ -62,14 +62,14 @@ export class AuthService {
   async login(email: string, password: string) {
     const validate = await this.validate(email, password);
 
-    return this.signToken(validate.id, validate.email);
+    return this.signToken(validate.id, validate.email, validate.role);
   }
 
-  private async signToken(userId: string, email: string) {
+  private async signToken(userId: string, email: string, role: string) {
     const [access_token, refresh_token] = await Promise.all([
-      this.jwt.signAsync({ sub: userId, email }, { expiresIn: '15m' }),
+      this.jwt.signAsync({ sub: userId, email, role }, { expiresIn: '15m' }),
       this.jwt.signAsync(
-        { sub: userId, email },
+        { sub: userId, email, role },
         { expiresIn: '30d', secret: process.env.JWT_REFRESH_SECRET },
       ),
     ]);
@@ -77,7 +77,7 @@ export class AuthService {
     return { access_token, refresh_token };
   }
 
-  async refreshToken(userId: string, email: string) {
-    return this.signToken(userId, email);
+  async refreshToken(userId: string, email: string, role: string) {
+    return this.signToken(userId, email, role);
   }
 }
