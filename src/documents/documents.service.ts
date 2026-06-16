@@ -3,13 +3,26 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class DocumentsService {
-  upload(file: Express.Multer.File) {
-    return {
-      filename: file.originalname,
-      size: file.size,
-      mimetype: file.mimetype,
-      // tenantId,
-    };
+  storageService: any;
+  prisma: any;
+  // Inside documents.service.ts
+  async handleDocumentUpload(file: Express.Multer.File, workspaceId: string) {
+    // 1. Upload to local MinIO bucket
+    const fileUrl = await this.storageService.uploadFile(file, workspaceId);
+
+    // 2. Commit metadata to PostgreSQL via Prisma
+    const document = await this.prisma.document.create({
+      data: {
+        name: file.originalname,
+        fileUrl: fileUrl,
+        status: 'PENDING',
+        workspaceId: workspaceId,
+      },
+    });
+
+    // 3. TODO: publish to RabbitMQ exchange (e.g., this.rabbitMq.publish(document))
+
+    return document;
   }
 
   findAll() {

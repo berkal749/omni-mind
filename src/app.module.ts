@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { TenantsModule } from './tenants/tenants.module';
 import { DocumentsModule } from './documents/documents.module';
+import { WorkspacesModule } from './workspaces/workspaces.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { DocumentsModule } from './documents/documents.module';
     AuthModule,
     TenantsModule,
     DocumentsModule,
+    WorkspacesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

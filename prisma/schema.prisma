@@ -14,25 +14,90 @@ datasource db {
 }
 
 enum Role {
-
   ADMIN
-  VIWER
-  EDITOR 
-  OWNER      
+  VIEWER
+  EDITOR
+  OWNER
 }
 
 
+// Update your existing schema.prisma
+
+enum DocumentStatus {
+  PENDING      // Uploaded, waiting for RabbitMQ processing
+  PROCESSING   // FastAPI is currently text-splitting and embedding
+  COMPLETED    // Vectors are fully generated and ready to chat
+  FAILED       // Something broke (corrupted file, timeout)
+}
+
+model Document {
+  id          String         @id @default(uuid())
+  name        String         // Original filename (e.g., "lecture1.pdf")
+  status      DocumentStatus @default(PENDING)
+  fileUrl     String         // Path or URL to the raw file storage
+  workspaceId String
+  workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  
+  // Relation to the text chunks extracted from this specific PDF
+  chunks      DocumentChunk[]
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([workspaceId]) // Crucial for fast workspace dashboard loading
+}
+
+model DocumentChunk {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  content    String   // The actual raw text string from this chunk of the PDF
+  pageNumber Int      // PDF metadata citation tracking
+  
+  // Note: Prisma natively doesn't support the 'vector' type directly in schema syntax yet,
+  // so we apply a safe SQL migration for the vector column afterwards.
+  
+  createdAt  DateTime @default(now())
+}
+
+
+enum SystemRole {
+  SUPER_ADMIN
+  USER
+}
+
+enum WorkspaceRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  name      String
-  password  String
-  role      Role      @default(USER)
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id         String            @id @default(uuid())
+  email      String            @unique
+  password   String
+  role       SystemRole        @default(USER) // Global application role
+  memberships WorkspaceMember[] // Workspaces this user can access
+  createdAt  DateTime          @default(now())
 }
 
+model Workspace {
+  id        String            @id @default(uuid())
+  name      String            // e.g., "Achref's Second Brain" or "Neat Agency Workspace"
+  members   WorkspaceMember[]
+  documents Document[]
+  createdAt DateTime          @default(now())
+}
 
+model WorkspaceMember {
+  id          String        @id @default(uuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(VIEWER) // RBAC inside the specific workspace!
+  
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId]) // A user can only be in a workspace once
+}
 
