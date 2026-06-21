@@ -10,7 +10,7 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+ 
 }
 
 enum Role {
@@ -24,42 +24,34 @@ enum Role {
 // Update your existing schema.prisma
 
 enum DocumentStatus {
-  PENDING      // Uploaded, waiting for RabbitMQ processing
-  PROCESSING   // FastAPI is currently text-splitting and embedding
-  COMPLETED    // Vectors are fully generated and ready to chat
-  FAILED       // Something broke (corrupted file, timeout)
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }
 
 model Document {
   id          String         @id @default(uuid())
-  name        String         // Original filename (e.g., "lecture1.pdf")
+  name        String         
   status      DocumentStatus @default(PENDING)
-  fileUrl     String         // Path or URL to the raw file storage
+  fileUrl     String         
   workspaceId String
   workspace   Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  
-  // Relation to the text chunks extracted from this specific PDF
   chunks      DocumentChunk[]
-  
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  @@index([workspaceId]) // Crucial for fast workspace dashboard loading
+  @@index([workspaceId])
 }
 
 model DocumentChunk {
   id         String   @id @default(uuid())
   documentId String
   document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  content    String   // The actual raw text string from this chunk of the PDF
-  pageNumber Int      // PDF metadata citation tracking
-  
-  // Note: Prisma natively doesn't support the 'vector' type directly in schema syntax yet,
-  // so we apply a safe SQL migration for the vector column afterwards.
-  
+  content    String   // Stores the plaintext segment that matches Chroma's ID
+  pageNumber Int      
   createdAt  DateTime @default(now())
 }
-
 
 enum SystemRole {
   SUPER_ADMIN

@@ -1,21 +1,26 @@
 import { Injectable } from '@nestjs/common';
+import { StorageService } from './storage.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 // import { CreateDocumentDto } from './dto/create-document.dto';
 
 @Injectable()
 export class DocumentsService {
-  storageService: any;
-  prisma: any;
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly storageService: StorageService,
+  ) {}
+  // Inside documents.service.ts
   // Inside documents.service.ts
   async handleDocumentUpload(file: Express.Multer.File, workspaceId: string) {
-    // 1. Upload to local MinIO bucket
+    // src/documents/documents.service.ts
     const fileUrl = await this.storageService.uploadFile(file, workspaceId);
 
-    // 2. Commit metadata to PostgreSQL via Prisma
+    // Then create the record in Prisma
     const document = await this.prisma.document.create({
       data: {
         name: file.originalname,
         fileUrl: fileUrl,
-        status: 'PENDING',
+        status: 'PENDING', // Ready for RabbitMQ to take over later
         workspaceId: workspaceId,
       },
     });
