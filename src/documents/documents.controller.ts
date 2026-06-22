@@ -7,14 +7,13 @@ import {
   Delete,
   UseGuards,
   UseInterceptors,
-  UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
 import { DocumentsService } from './documents.service.js';
 
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
+
 @Controller('documents')
 @UseGuards(AuthGuard('jwt'))
 export class DocumentsController {
@@ -37,10 +36,6 @@ export class DocumentsController {
       },
     }),
   )
-  create(@UploadedFile() file: Express.Multer.File) {
-    return this.documentsService.upload(file);
-  }
-
   @Get()
   findAll() {
     return this.documentsService.findAll();

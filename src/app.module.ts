@@ -4,9 +4,9 @@ import { AppService } from './app.service.js';
 import { UsersModule } from './users/users.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
-import { TenantsModule } from './tenants/tenants.module';
-import { DocumentsModule } from './documents/documents.module';
-import { WorkspacesModule } from './workspaces/workspaces.module';
+
+import { DocumentsModule } from './documents/documents.module.js';
+import { WorkspacesModule } from './workspaces/workspaces.module.js';
 
 @Module({
   imports: [
@@ -16,7 +16,6 @@ import { WorkspacesModule } from './workspaces/workspaces.module';
     PrismaModule,
     UsersModule,
     AuthModule,
-    TenantsModule,
     DocumentsModule,
     WorkspacesModule,
   ],

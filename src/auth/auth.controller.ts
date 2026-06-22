@@ -31,7 +31,7 @@ export class AuthController {
       const payload = this.jwt.verify(body.refresh_token, {
         secret: process.env.JWT_REFRESH_SECRET as string,
       }) 
-      return this.auth.refreshToken(payload.sub, payload.email);
+      return this.auth.refreshToken(payload.sub, payload.email , payload.role);
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }

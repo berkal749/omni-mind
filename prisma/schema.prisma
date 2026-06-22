@@ -55,6 +55,7 @@ model DocumentChunk {
 
 enum SystemRole {
   SUPER_ADMIN
+  ADMIN
   USER
 }
 
@@ -67,6 +68,7 @@ enum WorkspaceRole {
 model User {
   id         String            @id @default(uuid())
   email      String            @unique
+  name       String?
   password   String
   role       SystemRole        @default(USER) // Global application role
   memberships WorkspaceMember[] // Workspaces this user can access
