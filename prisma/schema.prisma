@@ -13,12 +13,7 @@ datasource db {
  
 }
 
-enum Role {
-  ADMIN
-  VIEWER
-  EDITOR
-  OWNER
-}
+
 
 
 // Update your existing schema.prisma

@@ -17,8 +17,8 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  register(@Body() body: { email: string; name: string; password: string }) {
-    return this.auth.register(body.email, body.name, body.password);
+  register(@Body() body: { email: string; password: string }) {
+    return this.auth.register(body.email, body.password);
   }
   @UseGuards(AuthGuard('local'))
   @Post('login')
