@@ -14,8 +14,10 @@ import { WorkspacesService } from './workspaces.service.js';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto.js';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto.js';
 import { SystemRole, WorkspaceRole } from '@prisma/client';
-import { Roles } from '../auth/roles/role.decorator.js';
+
 import { AuthRequest as R } from '../auth/types/auth-req.js';
+import { SystemRoles } from '../auth/roles/system-role.decorator.js';
+import { WorkSpaceRoles } from '../auth/roles/workSpace-roles.decorator.js';
 
 @Controller('workspaces')
 @UseGuards(AuthGuard('jwt'))
@@ -23,21 +25,26 @@ export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
   @Post()
+  @SystemRoles('USER')
   create(@Body() dto: CreateWorkspaceDto, @Request() req: R) {
     return this.workspacesService.create(dto, req.user.id);
   }
 
   @Get()
+  @SystemRoles('USER')
   findAll(@Request() req: R) {
     return this.workspacesService.findAllForUser(req.user.id);
   }
 
   @Get(':id')
+  @SystemRoles('USER')
   findOne(@Param('id') id: string, @Request() req: R) {
     return this.workspacesService.findOne(id, req.user.id);
   }
 
   @Put(':id')
+  @SystemRoles('ADMIN')
+  @WorkSpaceRoles('OWNER')
   update(
     @Param('id') id: string,
     @Body() dto: UpdateWorkspaceDto,
@@ -45,14 +52,16 @@ export class WorkspacesController {
   ) {
     return this.workspacesService.update(id, dto, req.user.id);
   }
-  @Roles(WorkspaceRole.OWNER, SystemRole.ADMIN)
+  
   @Delete(':id')
+  @SystemRoles('SUPER_ADMIN' , 'ADMIN')
+  @WorkSpaceRoles('OWNER' )
   remove(@Param('id') id: string, @Request() req: R) {
     return this.workspacesService.remove(id, req.user.id);
   }
 
   @Post(':id/members')
-  @Roles(WorkspaceRole.OWNER, WorkspaceRole.EDITOR, SystemRole.ADMIN)
+  @WorkSpaceRoles('OWNER' ,'EDITOR')
   addMember(
     @Param('id') workspaceId: string,
     @Body() body: { userId: string; role?: WorkspaceRole },
@@ -65,7 +74,7 @@ export class WorkspacesController {
   }
 
   @Delete(':id/members/:userId')
-  @Roles(WorkspaceRole.OWNER, SystemRole.ADMIN)
+  @WorkSpaceRoles('OWNER')
   removeMember(
     @Param('id') workspaceId: string,
     @Param('userId') userId: string,
