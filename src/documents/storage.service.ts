@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import * as path from 'path'
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class StorageService {
@@ -23,8 +25,16 @@ export class StorageService {
     file: Express.Multer.File,
     workspaceId: string,
   ): Promise<string> {
+
+    const FileExstenion = path.extname(file.originalname) // thie iwll return .pdf for example
+    const uuid = uuidv4();
+
     // Organizes files cleanly inside your bucket: workspaces/id/timestamp-filename.pdf
-    const fileKey = `workspaces/${workspaceId}/${Date.now()}-${file.originalname}`;
+    const fileKey = `workspaces/${workspaceId}/${Date.now()}-${uuid}${FileExstenion}`;
+    
+    if (!file.buffer) {
+    throw new BadRequestException('Invalid file buffer data.');
+  }
 
     await this.s3Client.send(
       new PutObjectCommand({
@@ -35,7 +45,8 @@ export class StorageService {
       }),
     );
 
+
     // Return the lookup path string to be stored in your Prisma PostgreSQL database
-    return `${this.bucketName}/${fileKey}`;
+    return  fileKey;
   }
 }

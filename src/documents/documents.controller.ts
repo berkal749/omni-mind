@@ -13,8 +13,13 @@ import { DocumentsService } from './documents.service.js';
 
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { SystemRole } from '@prisma/client';
+import { SystemRoles } from '../auth/roles/system-role.decorator.js';
+import { WorkSpaceRoles } from '../auth/roles/workSpace-roles.decorator.js';
 
 @Controller('documents')
+@SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
+@WorkSpaceRoles('OWNER' ,'EDITOR') // Specify the roles that can access this controller
 @UseGuards(AuthGuard('jwt'))
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
@@ -37,11 +42,15 @@ export class DocumentsController {
     }),
   )
   @Get()
+@SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
+@WorkSpaceRoles('OWNER' ,'EDITOR')
   findAll() {
     return this.documentsService.findAll();
   }
 
   @Get(':id')
+@SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
+@WorkSpaceRoles('OWNER' ,'EDITOR')
   findOne(@Param('id') id: string) {
     return this.documentsService.findOne(+id);
   }
@@ -55,6 +64,8 @@ export class DocumentsController {
   // }
 
   @Delete(':id')
+   @SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
+   @WorkSpaceRoles('OWNER' ,'EDITOR')
   remove(@Param('id') id: string) {
     return this.documentsService.remove(+id);
   }
