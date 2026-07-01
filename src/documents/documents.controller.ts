@@ -19,7 +19,7 @@ import { WorkSpaceRoles } from '../auth/roles/workSpace-roles.decorator.js';
 
 @Controller('documents')
 @SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
-@WorkSpaceRoles('OWNER' ,'EDITOR') // Specify the roles that can access this controller
+@WorkSpaceRoles('OWNER', 'EDITOR') // Specify the roles that can access this controller
 @UseGuards(AuthGuard('jwt'))
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
@@ -42,18 +42,18 @@ export class DocumentsController {
     }),
   )
   @Get()
-@SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
-@WorkSpaceRoles('OWNER' ,'EDITOR')
+  @SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
+  @WorkSpaceRoles('OWNER', 'EDITOR')
   findAll() {
-    return this.documentsService.findAll();
+    // return this.documentsService.findAll();
   }
 
-  @Get(':id')
-@SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
-@WorkSpaceRoles('OWNER' ,'EDITOR')
-  findOne(@Param('id') id: string) {
-    return this.documentsService.findOne(+id);
-  }
+  //   @Get(':id')
+  // @SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
+  // @WorkSpaceRoles('OWNER' ,'EDITOR')
+  //   findOne(@Param('id') id: string) {
+  //     return this.documentsService.findOne(+id);
+  //   }
 
   // @Patch(':id')
   // update(
@@ -63,10 +63,13 @@ export class DocumentsController {
   //   return this.documentsService.update(+id, updateDocumentDto);
   // }
 
-  @Delete(':id')
-   @SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
-   @WorkSpaceRoles('OWNER' ,'EDITOR')
-  remove(@Param('id') id: string) {
-    return this.documentsService.remove(+id);
+  @Delete(':workspaceId')
+  @SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
+  @WorkSpaceRoles('OWNER', 'EDITOR')
+  remove(
+    @Param('workspaceId') workspaceId: string,
+    @Body('name') name: string,
+  ) {
+    return this.documentsService.remove(workspaceId, name);
   }
 }

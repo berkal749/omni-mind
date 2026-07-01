@@ -1,6 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { StorageService } from './storage.service.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import * as path from 'path';
+import { UpdateDocumentDto } from './dto/update-document.dto.js';
 // import { CreateDocumentDto } from './dto/create-document.dto';
 
 @Injectable()
@@ -22,6 +24,12 @@ export class DocumentsService {
     if (fileTypes.includes(file.mimetype) === false) {
       throw new BadRequestException('file tpe not supported');
     }
+
+    const fileExt = path.extname(file.originalname).toLowerCase();
+    const allowedExtensions = ['.pdf', '.txt', '.json', '.md', '.jpeg', '.png'];
+    if (!allowedExtensions.includes(fileExt)) {
+      throw new BadRequestException('file extenston not supported');
+    }
     // src/documents/documents.service.ts
     const fileKey = await this.storageService.uploadFile(file, workspaceId);
     const minioEndpoint = process.env.MINIO_ENDPOINT || 'http://localhost:9000';
@@ -42,19 +50,20 @@ export class DocumentsService {
     return document;
   }
 
-  findAll() {
-    return `This action returns all documents`;
+  async findAllDocs(workspaceId: string) {
+    return await this.prisma.document.findMany({
+      where: { workspaceId },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} document`;
-  }
-
-  update(id: number) {
-    return `This action updates a #${id} document`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} document`;
+  remove(workspaceId: string, name: string) {
+    return this.prisma.document.delete({
+      where: {
+        workspaceId_name: {
+          workspaceId,
+          name,
+        },
+      },
+    });
   }
 }
