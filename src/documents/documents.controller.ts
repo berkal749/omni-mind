@@ -24,23 +24,13 @@ import { WorkSpaceRoles } from '../auth/roles/workSpace-roles.decorator.js';
 export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
-  @Post('upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      fileFilter: (req, file, callback) => {
-        if (file.mimetype !== 'application/pdf') {
-          return callback(
-            new BadRequestException('Only PDF files are allowed'),
-            false,
-          );
-        }
-        callback(null, true);
-      },
-      limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB max
-      },
-    }),
-  )
+  @Post('workspace/:workspaceId/upload/:doc_uuid')
+  async upload(file:Express.Multer.File, @Param('workspaceId') workspaceId: string) {
+    return await this.documentsService.handleDocumentUpload(file, workspaceId);
+  }
+
+
+
   @Get()
   @SystemRoles('SUPER_ADMIN', 'ADMIN', 'USER')
   @WorkSpaceRoles('OWNER', 'EDITOR')
