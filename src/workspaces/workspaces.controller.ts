@@ -13,31 +13,42 @@ import { AuthGuard } from '@nestjs/passport';
 import { WorkspacesService } from './workspaces.service.js';
 import { CreateWorkspaceDto } from './dto/create-workspace.dto.js';
 import { UpdateWorkspaceDto } from './dto/update-workspace.dto.js';
-import { SystemRole, WorkspaceRole } from '@prisma/client';
+import { SystemRole, User, WorkspaceRole } from '@prisma/client';
 
 import { AuthRequest as R } from '../auth/types/auth-req.js';
 import { SystemRoles } from '../auth/roles/system-role.decorator.js';
 import { WorkSpaceRoles } from '../auth/roles/workSpace-roles.decorator.js';
+import { SystemRolesGuard } from '../auth/roles/system-role.guard.js';
 
 @Controller('workspaces')
-@UseGuards(AuthGuard('jwt'))
+
 export class WorkspacesController {
   constructor(private readonly workspacesService: WorkspacesService) {}
 
   @Post()
-  @SystemRoles('USER')
-  create(@Body() dto: CreateWorkspaceDto, @Request() req: R) {
-    return this.workspacesService.create(dto, req.user.id);
+  @SystemRoles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @UseGuards(AuthGuard('jwt'), SystemRolesGuard)
+  create(@Body() dto: CreateWorkspaceDto) {
+    return this.workspacesService.create(dto);
   }
 
-  @Get()
-  @SystemRoles('USER')
-  findAll(@Request() req: R) {
-    return this.workspacesService.findAllForUser(req.user.id);
+  @Get('workspace_user')
+  @SystemRoles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @UseGuards(AuthGuard('jwt'), SystemRolesGuard)
+  findAllWorkSpaceUser(@Body() body: User, ) {
+    return this.workspacesService.findAllForUser(body.id);
   }
+  @Get('all')
+  @SystemRoles( 'ADMIN')
+  @UseGuards(AuthGuard('jwt'),SystemRolesGuard)
+  findAllWorkSpace( ) {
+    return this.workspacesService.findAllWorkSpace();
+  }
+
 
   @Get(':id')
-  @SystemRoles('USER')
+  @SystemRoles('USER', 'ADMIN', 'SUPER_ADMIN')
+  @UseGuards(AuthGuard('jwt'), SystemRolesGuard)
   findOne(@Param('id') id: string, @Request() req: R) {
     return this.workspacesService.findOne(id, req.user.id);
   }
@@ -45,6 +56,7 @@ export class WorkspacesController {
   @Put(':id')
   @SystemRoles('ADMIN')
   @WorkSpaceRoles('OWNER')
+  @UseGuards(AuthGuard('jwt'), SystemRolesGuard)
   update(
     @Param('id') id: string,
     @Body() dto: UpdateWorkspaceDto,
@@ -56,16 +68,18 @@ export class WorkspacesController {
   @Delete(':id')
   @SystemRoles('SUPER_ADMIN' , 'ADMIN')
   @WorkSpaceRoles('OWNER' )
+  @UseGuards(AuthGuard('jwt'), SystemRolesGuard)
   remove(@Param('id') id: string, @Request() req: R) {
     return this.workspacesService.remove(id, req.user.id);
   }
 
-  @Post(':id/members')
+  @Post(':workspaceId/members')
   @WorkSpaceRoles('OWNER' ,'EDITOR')
+  @UseGuards(AuthGuard('jwt'), SystemRolesGuard)
   addMember(
-    @Param('id') workspaceId: string,
+    @Param('workspaceId') workspaceId: string,
     @Body() body: { userId: string; role?: WorkspaceRole },
-  ) {
+  ) { 
     return this.workspacesService.addMember(
       workspaceId,
       body.userId,
@@ -75,6 +89,7 @@ export class WorkspacesController {
 
   @Delete(':id/members/:userId')
   @WorkSpaceRoles('OWNER')
+  @UseGuards(AuthGuard('jwt'), SystemRolesGuard)
   removeMember(
     @Param('id') workspaceId: string,
     @Param('userId') userId: string,

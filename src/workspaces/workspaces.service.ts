@@ -13,16 +13,10 @@ export class WorkspacesService {
   constructor(private prisma: PrismaService) {}
 
   // Create a workspace and make the creator its OWNER
-  async create(dto: CreateWorkspaceDto, userId: string) {
+  async create(dto: CreateWorkspaceDto) {
     return this.prisma.workspace.create({
       data: {
         name: dto.name,
-        members: {
-          create: {
-            userId,
-            role: WorkspaceRole.OWNER,
-          },
-        },
       },
       include: { members: true },
     });
@@ -38,6 +32,14 @@ export class WorkspacesService {
       },
       include: { members: true },
     });
+  }
+
+
+  async findAllWorkSpace() {
+    const workspace = await this.prisma.workspace.findMany();
+
+    if (!workspace) throw new NotFoundException('Workspace empty');
+    return workspace;
   }
 
   // Get one workspace, only if user is a member
@@ -81,7 +83,7 @@ export class WorkspacesService {
   ) {
     const existing = await this.prisma.workspaceMember.findUnique({
       where: {
-        workspaceId_userId: { workspaceId, userId: newUserId },
+        workspaceId_userId: { workspaceId:workspaceId, userId: newUserId },
       },
     });
 
